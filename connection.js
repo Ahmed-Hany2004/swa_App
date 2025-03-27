@@ -7,7 +7,7 @@ const client = new MongoClient(url);
 
 const db = client.db(dbname);
 
-const connectionString = process.env.MONGO_URI;
+const connectionString = process.env.url;
 if (!connectionString) {
     console.error("سلسلة الاتصال بقاعدة البيانات غير موجودة!");
     process.exit(1); // إيقاف التنفيذ إذا كانت السلسلة غير موجودة
