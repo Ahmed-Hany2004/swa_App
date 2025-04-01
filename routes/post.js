@@ -70,7 +70,7 @@ router.post("/",async(req,res)=>{
             data = jwt.verify(token, process.env.secritkey)
             req.user = data
           } else {
-            return res.status(400).json({ messege: "yor are not allaowed " })
+            return res.status(400).json({ messege: "login frist" })
           }
 
     try{
