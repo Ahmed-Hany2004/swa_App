@@ -71,6 +71,8 @@ router.post("/Create",async(req,res)=>{
         return res.status(400).json({"message": "This email is already used"})
     }
 
+    info = req.body.info || null
+
     data = await user.insertOne({
 
        "fristname":req.body.fristname,
@@ -80,6 +82,7 @@ router.post("/Create",async(req,res)=>{
        "phone":req.body.phone,
        "brithdate":req.body.brithdate,
        "bio":req.body.bio,
+       "info":info,
        "cover":{
         "url": null,
         "publicid": null,

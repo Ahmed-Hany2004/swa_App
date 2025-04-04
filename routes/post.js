@@ -2,8 +2,8 @@ const express = require("express");
 const { db } = require("../connection");
 const { ObjectId } = require("mongodb");
 const jwt = require("jsonwebtoken");
-const {cloud_Multiple_uplod,cloud_remove} =require("../cloud")
-const {upload} =require("../multerfunction")
+const { cloud_Multiple_uplod, cloud_remove } = require("../cloud")
+const { upload } = require("../multerfunction")
 const path = require("path")
 const fs = require("fs");
 
@@ -13,126 +13,227 @@ const fs = require("fs");
 const router = express.Router()
 
 
-router.get("/",async(req,res)=>{
+router.get("/", async (req, res) => {
 
 
-    const post = db.collection("post")
-    const page = req.query.page;
-    const limit = Number(req.query.limit);
+  const post = db.collection("post")
+  const react = db.collection("react")
+  const page = req.query.page||1;
+  const limit = Number(req.query.limit)||5;
 
-    try{
-
-      z = await post.find({}).toArray()
-
-      f = z.length;
-
-      last_page =  Math.ceil(f/limit);
+  const token = req.headers.token
+  req.user = null;
 
 
-      data =  x = await post.aggregate([
-        { $sort: { data: -1 } },
-        { $skip: (page - 1) * limit },
-        { $limit: Number(limit) },
+  if (token) {
+    data = jwt.verify(token, process.env.secritkey)
+    req.user = data
+  }
+
+  try {
+
+    z = await post.find({}).toArray()
+
+    f = z.length;
+
+    last_page = Math.ceil(f / limit);
+
+
+    data = x = await post.aggregate([
+      { $sort: { data: -1 } },
+      { $skip: (page - 1) * limit },
+      { $limit: Number(limit) },
+      {
+        $lookup:
         {
-           $lookup:
-           {
-              from: "user",
-              localField: "user",
-              foreignField: "_id",
-              as: "author"
-           },
+          from: "user",
+          localField: "user",
+          foreignField: "_id",
+          as: "author"
         },
-        { $project: {  user: 0, "author.pass": 0, "author.cover": 0 } },
+      },
+      { $project: { user: 0, "author.pass": 0, "author.cover": 0 } },
 
 
-     ]).toArray()
+    ]).toArray()
 
-      res.status(200).json({"data":data, last_page:last_page})
+    if (!token) {
+      res.status(200).json({ "data": data, last_page: last_page })
+    }
+
+
+    for(i= 0 ; i <data.length ; i++ ){
+ 
+     like = await react.findOne({"postid":new ObjectId(data[i]._id),"userid":new ObjectId(req.user.id)})
+
+    if(like){
+      data[i]["userreact"] =like.react
+    }else{
+
+      data[i]["userreact"] =null
+  
+    }
 
     }
-    catch (err) {
-        console.log("=========>" + err);
-        res.status(500).send("err in " + err)
+
+    res.status(200).json({ "data": data, last_page: last_page })
+
+  }
+  catch (err) {
+    console.log("=========>" + err);
+    res.status(500).send("err in " + err)
+  }
+})
+
+router.get("/user/:id",async(req,res)=>{
+ 
+  const post = db.collection("post")
+  const react = db.collection("react")
+  const page = req.query.page ||1;
+  const limit = Number(req.query.limit)||5;
+
+  const token = req.headers.token
+  req.user = null;
+
+
+  if (token) {
+    data = jwt.verify(token, process.env.secritkey)
+    req.user = data
+  }
+
+  try {
+
+    z = await post.find({}).toArray()
+
+    f = z.length;
+
+    last_page = Math.ceil(f / limit);
+
+
+    data = x = await post.aggregate([
+
+      { $match: { "user": new ObjectId(req.params.id) } },
+      { $sort: { data: -1 } },
+      { $skip: (page - 1) * limit },
+      { $limit: Number(limit) },
+      {
+        $lookup:
+        {
+          from: "user",
+          localField: "user",
+          foreignField: "_id",
+          as: "author"
+        },
+      },
+      { $project: { user: 0, "author.pass": 0, "author.cover": 0 } },
+
+
+    ]).toArray()
+
+    if (!token) {
+      res.status(200).json({ "data": data, last_page: last_page })
     }
+
+
+    for(i= 0 ; i <data.length ; i++ ){
+ 
+     like = await react.findOne({"postid":new ObjectId(data[i]._id),"userid":new ObjectId(req.user.id)})
+
+    if(like){
+      data[i]["userreact"] =like.react
+    }else{
+
+      data[i]["userreact"] =null
+  
+    }
+
+    }
+
+    res.status(200).json({ "data": data, last_page: last_page })
+
+  }
+  catch (err) {
+    console.log("=========>" + err);
+    res.status(500).send("err in " + err)
+  }
+
+})
+
+router.post("/", async (req, res) => {
+
+  const post = db.collection("post")
+
+  const token = req.headers.token
+  req.user = null;
+
+
+  if (token) {
+    data = jwt.verify(token, process.env.secritkey)
+    req.user = data
+  } else {
+    return res.status(400).json({ messege: "login frist" })
+  }
+
+  try {
+
+
+    data = await post.insertOne({
+
+      "link": req.body.link,
+      "hastags": req.body.hastags,
+      "mentions": req.body.mentions,
+      "paragraph": req.body.paragraph,
+      "reactCount": 0,
+      "reacts": {
+        "love": 0,
+        "sad": 0,
+        "angry": 0,
+        "prayer": 0,
+        "haha": 0,
+      },
+      "commentCount": 0,
+      "user": new ObjectId(req.user.id),
+      "data": Date.now(),
+      "img": [],
+    })
+
+    res.status(200).json({ messege: "post created Succeed" })
+
+  } catch (err) {
+    console.log("=========>" + err);
+    res.status(500).send("err in " + err)
+  }
+
+
 })
 
 
+router.post("/img/:id", upload.array("imgs"), async (req, res) => {
 
-router.post("/",async(req,res)=>{
+  const post = db.collection("post")
 
-    const post = db.collection("post")
-
-        const token = req.headers.token
-      req.user = null;
-    
-    
-        if (token) {
-            data = jwt.verify(token, process.env.secritkey)
-            req.user = data
-          } else {
-            return res.status(400).json({ messege: "login frist" })
-          }
-
-    try{
-
-
-        data = await post.insertOne({
-
-            "link":req.body.link,
-            "hastags":req.body.hastags,
-            "mentions":req.body.mentions,
-            "paragraph":req.body.paragraph,
-            "reactCount":0,
-            "reacts":{
-             "love":0,
-             "sad":0,
-             "angry":0,
-             "prayer":0,
-             "haha":0,
-            },
-            "commentCount":0,
-            "user":new ObjectId(req.user.id),
-            "data": Date.now(),
-            "img":[],
-        })
-
-        res.status(200).json({ messege: "post created Succeed" })
-
-    }catch (err) {
-        console.log("=========>" + err);
-        res.status(500).send("err in " + err)
-    }
-
-
-})
-
-
-router.post("/img/:id",upload.array("imgs"),async(req,res)=>{
-
-   const post = db.collection("post")
-
-   const token = req.headers.token
+  const token = req.headers.token
   req.user = null;
 
   if (token) {
     data = jwt.verify(token, process.env.secritkey)
     req.user = data
-  } else {                        
+  } else {
     return res.status(400).json({ message: "you not login " })
   }
 
 
-   try{
+  try {
 
-    newpost = await post.findOne({"_id":new ObjectId(req.params.id)})
+    newpost = await post.findOne({ "_id": new ObjectId(req.params.id) })
 
-    if(!newpost){
-    return  res.status(400).json({"message":"dont find this post"})
+    if (!newpost) {
+      return res.status(400).json({ "message": "dont find this post" })
     }
 
-    if(req.user.id != newpost.user){
+    if (req.user.id != newpost.user) {
 
-      return  res.status(400).json({message:"dont allowed"})
+      return res.status(400).json({ message: "dont allowed" })
     }
 
     const uploder = async (path) => await cloud_Multiple_uplod(path, "imges")
@@ -163,17 +264,17 @@ router.post("/img/:id",upload.array("imgs"),async(req,res)=>{
 
 
 
-   }
-catch (err) {
-        console.log("=========>" + err);
-        res.status(500).send("err in " + err)
-    }
+  }
+  catch (err) {
+    console.log("=========>" + err);
+    res.status(500).send("err in " + err)
+  }
 
 })
 
 
 
-router.put("/:id",async(req,res)=>{
+router.put("/:id", async (req, res) => {
 
   const post = db.collection("post")
 
@@ -183,146 +284,148 @@ router.put("/:id",async(req,res)=>{
   if (token) {
     data = jwt.verify(token, process.env.secritkey)
     req.user = data
-  } else {                        
+  } else {
     return res.status(400).json({ message: "you not login " })
   }
 
-try{
+  try {
 
-  newpost = await post.findOne({"_id":new ObjectId(req.params.id)})
+    newpost = await post.findOne({ "_id": new ObjectId(req.params.id) })
 
-  if(!newpost){
-  return  res.status(400).json({"message":"dont find this post"})
-  }
-
-  if(req.user.id != newpost.user){
-
-    return  res.status(400).json({message:"dont allowed"})
-  }
-
-
-  await post.updateOne({"_id":new ObjectId(req.params.id)},{$set:{
-   
-    "link":req.body.link,
-    "hastags":req.body.hastags,
-    "mentions":req.body.mentions,
-    "paragraph":req.body.paragraph,
-
-  }})
-
-
-  res.status(200).json({message: "post updated"})
-
-}
-catch (err) {
-  console.log("=========>" + err);
-  res.status(500).send("err in " + err)
-}
-
-})
-
-
-
-router.put("/pull/img/:id",async(req,res)=>{
-
-const post =  db.collection("post")
-
-
-const token = req.headers.token
-req.user = null;
-
-if (token) {
-  data = jwt.verify(token, process.env.secritkey)
-  req.user = data
-} else {                        
-  return res.status(400).json({ message: "you not login " })
-}
-
-
-try{
-
-
-  newpost = await post.findOne({"_id":new ObjectId(req.params.id)})
-
-  if(!newpost){
-  return  res.status(400).json({"message":"dont find this post"})
-  }
-
-  if(req.user.id != newpost.user){
-
-    return  res.status(400).json({message:"dont allowed"})
-  }
-
-
-  await post.updateOne({ "_id": new ObjectId(req.params.id) }, {
-    $pull: {
-      "img": { "publicid": req.body.publicid } // publicid
-
+    if (!newpost) {
+      return res.status(400).json({ "message": "dont find this post" })
     }
-  })
 
-  cloud_remove(req.body.publicid)
-  
-  res.status(200).json({message:"done"})
-}
-catch (err) {
-  console.log("=========>" + err);
-  res.status(500).send("err in " + err)
-}
+    if (req.user.id != newpost.user) {
 
-})
+      return res.status(400).json({ message: "dont allowed" })
+    }
 
 
-//react 
+    await post.updateOne({ "_id": new ObjectId(req.params.id) }, {
+      $set: {
 
-router.post("/react/:id",async(req,res)=>{
+        "link": req.body.link,
+        "hastags": req.body.hastags,
+        "mentions": req.body.mentions,
+        "paragraph": req.body.paragraph,
 
-  const post =  db.collection("post")
-  const react = db.collection("react")
-
-  const token = req.headers.token
-  req.user = null;
-  islike = req.body.islike
-  React = req.body.react
- 
-
-  if (token) {
-    data = jwt.verify(token, process.env.secritkey)
-    req.user = data
-  } else {                        
-    return res.status(400).json({ message: "you not login " })
-  }
+      }
+    })
 
 
-  try{
-
-
-
-if(islike == true){
-  
-await react.insertOne({
-  "userid":new ObjectId(req.user.id),
-"react":req.body.react,
-"postid":new ObjectId(req.params.id)
-})
-
- await post.updateOne({"_id":new ObjectId(req.params.id)},{$inc:{[`reacts.${React}`]:+1}})
-}
-if(islike == false){
-   await react.deleteOne({"userid":new ObjectId(req.user.id),"postid":new ObjectId(req.params.id)})
-   await post.updateOne({"_id":new ObjectId(req.params.id)},{$inc:{[`reacts.${React}`]:-1}})
-}
-
-
-res.status(200).json({message:"done"})
+    res.status(200).json({ message: "post updated" })
 
   }
   catch (err) {
     console.log("=========>" + err);
     res.status(500).send("err in " + err)
   }
-  
-  
+
+})
+
+
+
+router.put("/pull/img/:id", async (req, res) => {
+
+  const post = db.collection("post")
+
+
+  const token = req.headers.token
+  req.user = null;
+
+  if (token) {
+    data = jwt.verify(token, process.env.secritkey)
+    req.user = data
+  } else {
+    return res.status(400).json({ message: "you not login " })
+  }
+
+
+  try {
+
+
+    newpost = await post.findOne({ "_id": new ObjectId(req.params.id) })
+
+    if (!newpost) {
+      return res.status(400).json({ "message": "dont find this post" })
+    }
+
+    if (req.user.id != newpost.user) {
+
+      return res.status(400).json({ message: "dont allowed" })
+    }
+
+
+    await post.updateOne({ "_id": new ObjectId(req.params.id) }, {
+      $pull: {
+        "img": { "publicid": req.body.publicid } // publicid
+
+      }
+    })
+
+    cloud_remove(req.body.publicid)
+
+    res.status(200).json({ message: "done" })
+  }
+  catch (err) {
+    console.log("=========>" + err);
+    res.status(500).send("err in " + err)
+  }
+
+})
+
+
+//react 
+
+router.post("/react/:id", async (req, res) => {
+
+  const post = db.collection("post")
+  const react = db.collection("react")
+
+  const token = req.headers.token
+  req.user = null;
+  islike = req.body.islike
+  React = req.body.react
+
+
+  if (token) {
+    data = jwt.verify(token, process.env.secritkey)
+    req.user = data
+  } else {
+    return res.status(400).json({ message: "you not login " })
+  }
+
+
+  try {
+
+
+
+    if (islike == true) {
+
+      await react.insertOne({
+        "userid": new ObjectId(req.user.id),
+        "react": req.body.react,
+        "postid": new ObjectId(req.params.id)
+      })
+
+      await post.updateOne({ "_id": new ObjectId(req.params.id) }, { $inc: { [`reacts.${React}`]: +1 } })
+    }
+    if (islike == false) {
+      await react.deleteOne({ "userid": new ObjectId(req.user.id), "postid": new ObjectId(req.params.id) })
+      await post.updateOne({ "_id": new ObjectId(req.params.id) }, { $inc: { [`reacts.${React}`]: -1 } })
+    }
+
+
+    res.status(200).json({ message: "done" })
+
+  }
+  catch (err) {
+    console.log("=========>" + err);
+    res.status(500).send("err in " + err)
+  }
+
+
 })
 
 

@@ -13,6 +13,84 @@ const fs = require("fs");
 const router = express.Router()
 
 
+router.get("/post/:id",async(req,res)=>{
+
+const comment = db.collection("comment")
+
+const page = req.query.page||1;
+const limit = Number(req.query.limit)||5;
+
+try{
+   const totalComments = await comment.countDocuments({
+      "postid": new ObjectId(req.params.id),
+      "replay": null
+    });
+
+    
+    const last_page = Math.ceil(totalComments / limit);
+
+
+  data = await comment.aggregate([
+    { $match: { "postid": new ObjectId(req.params.id),"replay":null } },
+    { $sort: { data: -1 } },
+      { $skip: (page - 1) * limit },
+      { $limit: Number(limit) },
+      {
+        $lookup:{
+      from:"user",
+      localField:"user",
+      foreignField: "_id",
+      as: "author"
+        } 
+      },
+      { $project: { user: 0, "author.pass": 0, "author.cover": 0 } },
+
+   ]).toArray();
+
+   res.status(200).json({"data":data , "last_page":last_page})
+
+}
+catch (err) {
+  console.log("=========>" + err);
+  res.status(500).send("err in " + err)
+}
+
+})
+
+
+
+           
+router.get("/post/:z/replay/:x",async(req,res)=>{
+  const comment = db.collection("comment")
+
+
+  
+  try{
+    data = await comment.aggregate([
+      { $match: { "postid": new ObjectId(req.params.z),"replay":new ObjectId(req.params.x) } },
+      { $sort: { data: -1 } },
+        {
+          $lookup:{
+        from:"user",
+        localField:"user",
+        foreignField: "_id",
+        as: "author"
+          } 
+        },
+        { $project: { user: 0, "author.pass": 0, "author.cover": 0 } },
+  
+     ]).toArray();
+  
+     res.status(200).json({"data":data ,})
+  
+  }
+  catch (err) {
+    console.log("=========>" + err);
+    res.status(500).send("err in " + err)
+  }
+
+})
+
 
 router.post("/:id",async(req,res)=>{
 
