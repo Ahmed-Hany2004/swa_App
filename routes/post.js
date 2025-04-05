@@ -197,7 +197,7 @@ router.post("/", async (req, res) => {
       "img": [],
     })
 
-    res.status(200).json({ messege: "post created Succeed" })
+    res.status(200).json({ messege: "post created Succeed","postId":data.insertedId })
 
   } catch (err) {
     console.log("=========>" + err);
