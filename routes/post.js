@@ -52,7 +52,7 @@ router.get("/", async (req, res) => {
           as: "author"
         },
       },
-      { $project: { user: 0, "author.pass": 0, "author.cover": 0 } },
+      { $project: { user: 0, "author.password": 0, "author.cover": 0 } },
 
 
     ]).toArray()
@@ -125,7 +125,7 @@ router.get("/user/:id",async(req,res)=>{
           as: "author"
         },
       },
-      { $project: { user: 0, "author.pass": 0, "author.cover": 0 } },
+      { $project: { user: 0, "author.password": 0, "author.cover": 0 } },
 
 
     ]).toArray()

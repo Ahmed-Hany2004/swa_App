@@ -47,7 +47,7 @@ router.get("/",async(req,res)=>{
           as: "author"
             } 
           },
-          { $project: {  "author.pass": 0, "author.cover": 0 } },
+          { $project: {  "author.password": 0, "author.cover": 0 } },
      ]).toArray()
 
 
