@@ -72,7 +72,7 @@ router.post("/Create", async (req, res) => {
     }
 
     info = req.body.info || null
-
+    Settings = req.body,Settings || null
     data = await user.insertOne({
 
       "fristname": req.body.fristname,
@@ -83,6 +83,7 @@ router.post("/Create", async (req, res) => {
       "brithdate": req.body.brithdate,
       "bio": req.body.bio,
       "info": info,
+      "Settings":Settings,
       "cover": {
         "url": null,
         "publicid": null,
@@ -160,7 +161,9 @@ router.put("/:id", async (req, res) => {
         "lastname": req.body.lastname,
         "password": req.body.password,
         "phone": req.body.phone,
-        "brithdate": req.body.brithdate
+        "brithdate": req.body.brithdate,
+        "info": info,
+      "Settings":Settings,
       }
     }
     )
