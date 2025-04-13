@@ -32,7 +32,7 @@ try{
 
   data = await comment.aggregate([
     { $match: { "postid": new ObjectId(req.params.id),"replay":null } },
-    { $sort: { data: -1 } },
+    { $sort: { time: -1 } },
       { $skip: (page - 1) * limit },
       { $limit: Number(limit) },
       {
@@ -68,7 +68,7 @@ router.get("/post/:z/replay/:x",async(req,res)=>{
   try{
     data = await comment.aggregate([
       { $match: { "postid": new ObjectId(req.params.z),"replay":new ObjectId(req.params.x) } },
-      { $sort: { data: -1 } },
+      { $sort: { time: -1 } },
         {
           $lookup:{
         from:"user",
