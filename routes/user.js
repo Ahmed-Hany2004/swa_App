@@ -72,7 +72,7 @@ router.post("/Create", async (req, res) => {
     }
 
     info = req.body.info || null
-    Settings = req.body,Settings || null
+    Settings = req.body.Settings || null
     data = await user.insertOne({
 
       "fristname": req.body.fristname,
