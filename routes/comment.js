@@ -96,6 +96,7 @@ router.get("/post/:z/replay/:x", async (req, res) => {
 router.post("/:id", async (req, res) => {
 
   const comment = db.collection("comment")
+  const post = db.collection("post")
 
 
   const token = req.headers.token
@@ -134,7 +135,13 @@ router.post("/:id", async (req, res) => {
       "seeMOre":false,
       "replay": replay,
       
-    })
+    }) 
+
+    await post.updateOne({"_id":new ObjectId(req.params.id)},{$inc:{
+      "commentCount": +1
+    }})
+
+
 
     res.status(200).json({ messege: "comment created Succeed" })
 
