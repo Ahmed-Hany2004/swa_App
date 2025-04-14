@@ -297,7 +297,7 @@ router.post("/img/:id", upload.array("imgs"), async (req, res) => {
       return res.status(400).json({ message: "dont allowed" })
     }
 
-    const uploder = async (path) => await cloud_Multiple_uplod(path, "imges",req.files)
+    const uploder = async (path) => await cloud_Multiple_uplod(path, "imges")
 
     const urls = []
 

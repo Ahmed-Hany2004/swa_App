@@ -204,6 +204,7 @@ router.put("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
 
   const comment = db.collection("comment")
+  const post = db .collection("post")
 
   const token = req.headers.token
   req.user = null;
@@ -219,21 +220,27 @@ router.delete("/:id", async (req, res) => {
   try {
 
     newComment = await comment.findOne({ "_id": new ObjectId(req.params.id) })
+    newpost = await post.findOne({"_id":new ObjectId(newComment._id)})
 
     if (!newComment) {
 
       return res.status(400).json({ messege: "dont find this comment" })
     }
 
-    if (newComment.user != req.user.id) {
+    if (newComment.user == req.user.id || newpost._id == req.user.id) {
+     
+      await comment.deleteOne({ "_id": new ObjectId(req.params.id) })
 
-      return res.status(400).json({ message: "dont allowed" })
+    await post.updateOne({"_id":new ObjectId(newpost._id)},{$inc:{
+      "commentCount":-1
+    }})
+      return res.status(200).json({ message: "comment deleted" })
+      
     }
 
-
-    await comment.deleteOne({ "_id": new ObjectId(req.params.id) })
-
-    res.status(200).json({ message: "comment deleted" })
+     res.status(400).json({ message: "dont allowed" })
+     
+    
 
   }
   catch (err) {
