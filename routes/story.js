@@ -226,7 +226,7 @@ router.put("/:id/pull/img", async (req, res) => {
         }
         await story.updateOne({ "_id": new ObjectId(req.params.id) }, {
             $pull: {
-                "img.newpath": { "publicid": req.body.publicid } // publicid
+                "img": { "newpath.publicid": req.body.publicid } // publicid
 
             }
         })
