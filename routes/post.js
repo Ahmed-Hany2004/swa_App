@@ -85,6 +85,67 @@ router.get("/", async (req, res) => {
   }
 })
 
+
+router.get("/:id",async(req,res)=>{
+
+  const post = db.collection("post")
+  const react = db.collection("react")
+
+
+  const token = req.headers.token
+  req.user = null;
+
+  if (token) {
+    data = jwt.verify(token, process.env.secritkey)
+    req.user = data
+  }
+
+try{
+ 
+  data = x = await post.aggregate([
+    { $match: {"_id":new ObjectId(req.params.id)} },
+    {
+      $lookup:
+      {
+        from: "user",
+        localField: "user",
+        foreignField: "_id",
+        as: "author"
+      },
+    },
+    { $project: { user: 0, "author.password": 0, "author.cover": 0 } },
+
+
+  ]).toArray()
+
+  if(token){
+
+    like = await react.findOne({"postid":new ObjectId(data._id),"userid":new ObjectId(req.user.id)})
+
+    if(like){
+      data["userreact"] =like.react
+    }else{
+  
+      data["userreact"] =null
+  
+    }
+
+  }
+
+ 
+
+
+
+  res.status(200).json({ "data": data, })
+
+}
+catch (err) {
+    console.log("=========>" + err);
+    res.status(500).send("err in " + err)
+  }
+})
+
+
 router.get("/user/:id",async(req,res)=>{
  
   const post = db.collection("post")
@@ -236,7 +297,7 @@ router.post("/img/:id", upload.array("imgs"), async (req, res) => {
       return res.status(400).json({ message: "dont allowed" })
     }
 
-    const uploder = async (path) => await cloud_Multiple_uplod(path, "imges")
+    const uploder = async (path) => await cloud_Multiple_uplod(path, "imges",req.files)
 
     const urls = []
 
@@ -245,11 +306,11 @@ router.post("/img/:id", upload.array("imgs"), async (req, res) => {
 
     for (const file of files) {
 
-      const { path } = file
+      const { path , originalname } = file
 
       const newpath = await uploder(path)
 
-      urls.push(newpath)
+      urls.push({newpath, originalname})
 
       fs.unlinkSync(path)
     }

@@ -75,14 +75,13 @@ router.post("/", async (req, res) => {
         return res.status(400).json({ messege: "login frist" })
     }
 
+    info = req.body.info || {}
+
     try {
 
         data = await story.insertOne({
-            "img": {
-                "url": null,
-                "publicid": null,
-                "originalname": null,
-            },
+            "img":[],
+            "info":info,
             "paragraph": req.body.paragraph,
             "date": new Date(),
             "user": new ObjectId(req.user.id)
