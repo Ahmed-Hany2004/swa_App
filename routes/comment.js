@@ -132,7 +132,7 @@ router.post("/:id", async (req, res) => {
       "postid": new ObjectId(req.params.id),
       "paragraph": req.body.paragraph,
       "user": new ObjectId(req.user.id),
-      "seeMOre":false,
+      "seeMore":false,
       "replay": replay,
       
     }) 
