@@ -220,14 +220,14 @@ router.delete("/:id", async (req, res) => {
   try {
 
     newComment = await comment.findOne({ "_id": new ObjectId(req.params.id) })
-    newpost = await post.findOne({"_id":new ObjectId(newComment._id)})
+    newpost = await post.findOne({"_id":new ObjectId(newComment.postid)})
 
     if (!newComment) {
 
       return res.status(400).json({ messege: "dont find this comment" })
     }
 
-    if (newComment.user == req.user.id || newpost._id == req.user.id) {
+    if (newComment.user == req.user.id || newpost.user == req.user.id) {
      
       await comment.deleteOne({ "_id": new ObjectId(req.params.id) })
 
