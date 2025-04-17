@@ -137,13 +137,22 @@ router.post("/:id", async (req, res) => {
       
     }) 
 
+    data = {
+      "time": Date.now(),
+      "postid": new ObjectId(req.params.id),
+      "paragraph": req.body.paragraph,
+      "user": new ObjectId(req.user.id),
+      "seeMore":false,
+      "replay": replay,
+      
+    }
     await post.updateOne({"_id":new ObjectId(req.params.id)},{$inc:{
       "commentCount": +1
     }})
 
 
 
-    res.status(200).json({ messege: "comment created Succeed" })
+    res.status(200).json({ messege: "comment created Succeed","data":data })
 
   } catch (err) {
     console.log("=========>" + err);

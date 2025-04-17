@@ -75,7 +75,7 @@ router.post("/Create", async (req, res) => {
     Settings = req.body.Settings || null
     data = await user.insertOne({
 
-      "fristname": req.body.fristname,
+      "firstname": req.body.firstname,
       "lastname": req.body.lastname,
       "email": req.body.email,
       "password": req.body.password,
@@ -157,7 +157,7 @@ router.put("/:id", async (req, res) => {
 
     await user.updateOne({ "_id": new ObjectId(req.params.id) }, {
       $set: {
-        "fristname": req.body.fristname,
+        "firstname": req.body.firstname,
         "lastname": req.body.lastname,
         "password": req.body.password,
         "phone": req.body.phone,

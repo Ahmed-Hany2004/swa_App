@@ -25,10 +25,12 @@ const userpath = require("./routes/user")
 const postpath = require("./routes/post")
 const commentpath = require("./routes/comment")
 const storypath = require("./routes/story")
+const pagepath = require("./routes/page")
 
 app.use("/user", userpath)
 app.use("/post", postpath)
 app.use("/comment", commentpath)
 app.use("/story", storypath)
+app.use("/page", pagepath)
 
 main(app);
