@@ -480,17 +480,26 @@ router.post("/react/:id", async (req, res) => {
 
     if (islike == true) {
 
+
+     chack =  await react.findOne({"userid": new ObjectId(req.user.id),"postid": new ObjectId(req.params.id)})
+
+     if(chack){
+  
+     await post.updateOne({"_id": new ObjectId(req.params.id)},{$inc:{[`reacts.${chack.react}`]:-1, "reactCount":-1}})
+     await react.deleteOne({ "userid": new ObjectId(req.user.id), "postid": new ObjectId(req.params.id) })
+     }
+
       await react.insertOne({
         "userid": new ObjectId(req.user.id),
         "react": req.body.react,
         "postid": new ObjectId(req.params.id)
       })
 
-      await post.updateOne({ "_id": new ObjectId(req.params.id) }, { $inc: { [`reacts.${React}`]: +1 } })
+      await post.updateOne({ "_id": new ObjectId(req.params.id) }, { $inc: { [`reacts.${React}`]: +1,"reactCount":+1 } })
     }
     if (islike == false) {
       await react.deleteOne({ "userid": new ObjectId(req.user.id), "postid": new ObjectId(req.params.id) })
-      await post.updateOne({ "_id": new ObjectId(req.params.id) }, { $inc: { [`reacts.${React}`]: -1 } })
+      await post.updateOne({ "_id": new ObjectId(req.params.id) }, { $inc: { [`reacts.${React}`]: -1,"reactCount":-1 } })
     }
 
 
