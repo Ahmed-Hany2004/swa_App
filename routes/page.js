@@ -196,7 +196,7 @@ router.post("/cover",upload.single("img") ,async(req,res)=>{
         }
       })
       fs.unlinkSync(pathimge)
-      res.status(200).json({ message: "upload img Succeed", })
+      res.status(200).json({ message: "upload cover Succeed", })
     }
     catch (err) {
         console.log("=========>" + err);
@@ -296,7 +296,79 @@ router.delete("/cover",async(req,res)=>{
       }
 })
 
+router.get("/page/:id",async(req,res)=>{
 
+  const post = db.collection("post")
+
+  const page = req.query.page ||1;
+    const limit = Number(req.query.limit)||5;
+  
+    const token = req.headers.token
+    req.user = null;
+  
+  
+    if (token) {
+      data = jwt.verify(token, process.env.secritkey)
+      req.user = data
+    }
+
+    try{
+
+      z = await post.find({}).toArray()
+
+    f = z.length;
+
+    last_page = Math.ceil(f / limit);
+
+    data = x = await post.aggregate([
+
+      { $match: { "pageId": new ObjectId(req.params.id) } },
+      { $sort: { data: -1 } },
+      { $skip: (page - 1) * limit },
+      { $limit: Number(limit) },
+      {
+        $lookup:
+        {
+          from: "page",
+          localField: "pageId",
+          foreignField: "_id",
+          as: "page"
+        },
+      },
+      { $project: { user: 0, "author.password": 0, "author.cover": 0 } },
+
+
+    ]).toArray()
+
+    if (!token) {
+      res.status(200).json({ "data": data, last_page: last_page })
+    }
+
+
+    for(i= 0 ; i <data.length ; i++ ){
+ 
+     like = await react.findOne({"postid":new ObjectId(data[i]._id),"userid":new ObjectId(req.user.id)})
+
+    if(like){
+      data[i]["userreact"] =like.react
+    }else{
+
+      data[i]["userreact"] =null
+  
+    }
+
+    }
+
+    res.status(200).json({ "data": data, last_page: last_page })
+
+
+    }
+    catch (err) {
+      console.log("=========>" + err);
+      res.status(500).send("err in " + err)
+    }
+
+})
 
 router.post("/create/post",async(req,res)=>{
 
@@ -409,7 +481,7 @@ router.post("/post/img/:id",upload.array("imgs"),async(req,res)=>{
 })
 
 
-router.put("/update/:id",async(req,res)=>{
+router.put("/update/:id",async(req,res)=>{x
 
   const page =db.collection("page")
   const post = db.collection("post")
