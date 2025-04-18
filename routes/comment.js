@@ -127,7 +127,7 @@ router.post("/:id", async (req, res) => {
       replay = null
     }
 
-    await comment.insertOne({
+   newcomment = await comment.insertOne({
       "time": Date.now(),
       "postid": new ObjectId(req.params.id),
       "paragraph": req.body.paragraph,
@@ -138,6 +138,7 @@ router.post("/:id", async (req, res) => {
     }) 
 
     data = {
+      "_id":newComment.insertedId,
       "time": Date.now(),
       "postid": new ObjectId(req.params.id),
       "paragraph": req.body.paragraph,

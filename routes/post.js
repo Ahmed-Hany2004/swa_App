@@ -39,7 +39,7 @@ router.get("/", async (req, res) => {
     last_page = Math.ceil(f / limit);
 
 
-    data = x = await post.aggregate([
+    data = await post.aggregate([
       { $sort: { data: -1 } },
       { $skip: (page - 1) * limit },
       { $limit: Number(limit) },
@@ -53,9 +53,31 @@ router.get("/", async (req, res) => {
         },
       },
       { $project: { user: 0, "author.password": 0, "author.cover": 0 } },
+      {
+        $lookup:{
+          from: "page",
+          localField: "pageId",
+          foreignField: "_id",
+          as: "page"
+        },
 
-
+      }
     ]).toArray()
+
+
+    for(i=0 ; i<data.length; i++){
+
+      if(data[i].page.length == 0){
+ 
+        
+        delete data[i].page
+      }
+      else if(data[i].author.length == 0){
+        
+        delete data[i].author
+      }
+
+    }
 
     if (!token) {
       res.status(200).json({ "data": data, last_page: last_page })
@@ -245,13 +267,7 @@ router.post("/", async (req, res) => {
       "mentions": req.body.mentions,
       "paragraph": req.body.paragraph,
       "reactCount": 0,
-      "reacts": {
-        "love": 0,
-        "sad": 0,
-        "angry": 0,
-        "prayer": 0,
-        "haha": 0,
-      },
+      "reacts": {},
       "commentCount": 0,
       "user": new ObjectId(req.user.id),
       "data": Date.now(),

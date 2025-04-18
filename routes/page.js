@@ -298,6 +298,210 @@ router.delete("/cover",async(req,res)=>{
 
 
 
+router.post("/create/post",async(req,res)=>{
+
+  const page =db.collection("page")
+  const post = db.collection("post")
+
+  const token = req.headers.token
+  req.user = null;
+
+  if (token) {
+      data = jwt.verify(token, process.env.secritkey)
+      req.user = data
+    } else {
+      return res.status(400).json({ message: "you not login " })
+    }
+    try{
+
+      newpage = await page.findOne({"owner":new ObjectId(req.user.id)})
+
+      if(!newpage){
+  
+      return res.status(400).json({messege: "You are not the owner"})
+      }
+
+      data = await post.insertOne({
+
+        "link": req.body.link,
+        "hastags": req.body.hastags,
+        "mentions": req.body.mentions,
+        "paragraph": req.body.paragraph,
+        "reactCount": 0,
+        "reacts": {
+        },
+        "commentCount": 0,
+        "pageId": new ObjectId(newpage._id),
+        "data": Date.now(),
+        "img": [],
+      })
+  
+      res.status(200).json({ messege: "post created Succeed","postId":data.insertedId })
+
+    }
+    catch (err) {
+      console.log("=========>" + err);
+      res.status(500).send("err in " + err)
+    }
+
+
+})
+
+
+
+router.post("/post/img/:id",upload.array("imgs"),async(req,res)=>{
+
+  const page =db.collection("page")
+  const post = db.collection("post")
+
+  const token = req.headers.token
+  req.user = null;
+
+  if (token) {
+      data = jwt.verify(token, process.env.secritkey)
+      req.user = data
+    } else {
+      return res.status(400).json({ message: "you not login " })
+    }
+
+    try{
+    
+      newpage = await page.findOne({"owner":new ObjectId(req.user.id)})
+
+      if(!newpage){
+  
+      return res.status(400).json({messege: "You are not the owner"})
+      }
+
+      const uploder = async (path) => await cloud_Multiple_uplod(path, "imges")
+      
+          const urls = []
+      
+          const files = req.files
+      
+      
+          for (const file of files) {
+      
+            const { path , originalname } = file
+      
+            const newpath = await uploder(path)
+      
+            urls.push({newpath, originalname})
+      
+            fs.unlinkSync(path)
+          }
+      
+          await post.updateOne({ "_id": new ObjectId(req.params.id) }, {
+            $push: {
+              "img": { $each: urls }
+            }
+          })
+      
+          res.status(200).json("upload img Succeed")
+    }
+    catch (err) {
+      console.log("=========>" + err);
+      res.status(500).send("err in " + err)
+    }
+
+
+
+})
+
+
+router.put("/update/:id",async(req,res)=>{
+
+  const page =db.collection("page")
+  const post = db.collection("post")
+
+  const token = req.headers.token
+  req.user = null;
+
+  if (token) {
+      data = jwt.verify(token, process.env.secritkey)
+      req.user = data
+    } else {
+      return res.status(400).json({ message: "you not login " })
+    }
+
+    try{
+
+      newpage = await page.findOne({"owner":new ObjectId(req.user.id)})
+
+      if(!newpage){
+  
+      return res.status(400).json({messege: "You are not the owner"})
+      }
+      
+      await post.updateOne({ "_id": new ObjectId(req.params.id) }, {
+        $set: {
+  
+          "link": req.body.link,
+          "hastags": req.body.hastags,
+          "mentions": req.body.mentions,
+          "paragraph": req.body.paragraph,
+  
+        }
+      })
+  
+  
+      res.status(200).json({ message: "post updated" })
+
+    }
+    catch (err) {
+      console.log("=========>" + err);
+      res.status(500).send("err in " + err)
+    }
+
+
+})
+
+
+router.put("/pull/img/:id",async(req,res)=>{
+
+  const page =db.collection("page")
+  const post = db.collection("post")
+
+  const token = req.headers.token
+  req.user = null;
+
+  if (token) {
+      data = jwt.verify(token, process.env.secritkey)
+      req.user = data
+    } else {
+      return res.status(400).json({ message: "you not login " })
+    }
+
+    try{
+   
+      newpage = await page.findOne({"owner":new ObjectId(req.user.id)})
+
+      if(!newpage){
+  
+      return res.status(400).json({messege: "You are not the owner"})
+      }
+
+
+      await post.updateOne({ "_id": new ObjectId(req.params.id) }, {
+        $pull: {
+          "img": { "newpath.publicid": req.body.publicid } // publicid
+  
+        }
+      })
+  
+      cloud_remove(req.body.publicid)
+  
+      res.status(200).json({ message: "done" })
+
+    }
+    catch (err) {
+      console.log("=========>" + err);
+      res.status(500).send("err in " + err)
+    }
+
+
+})
+
 
 
 
