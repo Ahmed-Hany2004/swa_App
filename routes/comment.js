@@ -138,7 +138,7 @@ router.post("/:id", async (req, res) => {
     }) 
 
     data = {
-      "_id":newComment.insertedId,
+      "_id":newcomment.insertedId,
       "time": Date.now(),
       "postid": new ObjectId(req.params.id),
       "paragraph": req.body.paragraph,
