@@ -26,11 +26,13 @@ const postpath = require("./routes/post")
 const commentpath = require("./routes/comment")
 const storypath = require("./routes/story")
 const pagepath = require("./routes/page")
+const chatpath = require("./routes/chat")
 
 app.use("/user", userpath)
 app.use("/post", postpath)
 app.use("/comment", commentpath)
 app.use("/story", storypath)
 app.use("/page", pagepath)
+app.use("/caht",chatpath)
 
 main(app);

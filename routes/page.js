@@ -314,7 +314,7 @@ router.get("/page/:id",async(req,res)=>{
 
     try{
 
-      z = await post.find({}).toArray()
+      z = await post.find({"pageId": new ObjectId(req.params.id) }).toArray()
 
     f = z.length;
 
@@ -573,6 +573,9 @@ router.put("/pull/img/:id",async(req,res)=>{
 
 
 })
+
+
+
 
 
 
