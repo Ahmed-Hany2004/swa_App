@@ -186,7 +186,7 @@ router.get("/user/:id",async(req,res)=>{
 
   try {
 
-    z = await post.find({}).toArray()
+    z = await post.find({{ "user": new ObjectId(req.params.id) }}).toArray()
 
     f = z.length;
 
