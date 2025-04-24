@@ -93,7 +93,13 @@ router.post("/Create", async (req, res) => {
         "url": null,
         "publicid": null,
         "originalname": null,
-      }
+      },
+      "friends":[],
+      "friendRequests": {
+    "sent": [],               
+    "received": []            
+  }
+
     })
 
     const token = jwt.sign({ id: data.insertedId }, process.env.secritkey);
@@ -421,5 +427,211 @@ router.delete("/:id", async (req, res) => {
 })
 
 
+router.post("/send/friend",async(req,res)=>{
+
+  const user = db.collection("user")
+
+  const token = req.headers.token
+      req.user = null;
+  
+  
+      if (token) {
+          data = jwt.verify(token, process.env.secritkey)
+          req.user = data
+      } else {
+        return res.status(400).json({ messege: "login frist" })
+    }
+
+    try{
+
+
+      await user.updateOne({"_id":new ObjectId(req.user.id)},{$addToSet: { "friendRequests.sent": new ObjectId(req.body.userid) }})
+
+      await user.updateOne({"_id":new ObjectId(req.body.userid)},{$addToSet: { "friendRequests.received": new ObjectId(req.user.id) }})
+
+      res.status(200).json({"message":"done"})
+
+    }
+    catch (err) {
+      console.log("=========>" + err);
+      res.status(500).send("err in " + err)
+    }
+
+})
+
+
+router.post("/friend",async(req,res)=>{
+
+  const user = db.collection("user")
+
+  const token = req.headers.token
+      req.user = null;
+  
+  
+      if (token) {
+          data = jwt.verify(token, process.env.secritkey)
+          req.user = data
+      } else {
+        return res.status(400).json({ messege: "login frist" })
+    }
+
+
+    try{
+      
+      accept = req.body.accept
+
+    if(accept == true){
+
+       await user.updateOne({"_id":new ObjectId(req.user.id)},{
+        $pull: { "friendRequests.received": new ObjectId(req.body.userid) },
+        $addToSet: { friends: new ObjectId(req.body.userid) }      
+    })
+    
+    await user.updateOne({"_id":new ObjectId(req.body.userid)},{ 
+      $pull: { "friendRequests.sent": new ObjectId(req.user.id) },
+      $addToSet: { friends: new ObjectId(req.user.id)}
+    })
+
+    res.status(200).json({"message":"accept true"})
+
+    }
+    else{
+ 
+      await user.updateOne({"_id":new ObjectId(req.user.id)},{
+        $pull: { "friendRequests.received": new ObjectId(req.body.userid) },     
+    })
+
+    await user.updateOne({"_id":new ObjectId(req.body.userid)},{ 
+      $pull: { "friendRequests.sent": new ObjectId(req.user.id) },
+    })
+
+    res.status(200).json({"message":"accept false"})
+
+    }
+
+
+
+    }
+    catch (err) {
+      console.log("=========>" + err);
+      res.status(500).send("err in " + err)
+    }
+
+})
+
+
+router.post("/get/friend",async(req,res)=>{
+
+  const user = db.collection("user")
+  
+
+  const token = req.headers.token
+      req.user = null;
+  
+  
+      if (token) {
+          data = jwt.verify(token, process.env.secritkey)
+          req.user = data
+      } else {
+        return res.status(400).json({ messege: "login frist" })
+    }
+
+    try{
+
+  liveuser = await user.findOne({"_id":new ObjectId(req.user.id)})
+
+
+  const friends = await user.find({
+    _id: { $in: liveuser.friends }
+  }).toArray();
+
+  res.status(200).json({"data":friends})
+
+
+    }
+    catch (err) {
+      console.log("=========>" + err);
+      res.status(500).send("err in " + err)
+    }
+
+})
+
+
+
+router.post("/get/friendsend",async(req,res)=>{
+
+  const user = db.collection("user")
+  
+
+  const token = req.headers.token
+      req.user = null;
+  
+  
+      if (token) {
+          data = jwt.verify(token, process.env.secritkey)
+          req.user = data
+      } else {
+        return res.status(400).json({ messege: "login frist" })
+    }
+
+
+    try{
+
+      liveuser = await user.findOne({"_id":new ObjectId(req.user.id)})
+
+
+      const friends = await user.find({
+        _id: { $in: liveuser.friendRequests.sent }
+      }).toArray();
+    
+      res.status(200).json({"data":friends})
+
+
+    }
+    catch (err) {
+      console.log("=========>" + err);
+      res.status(500).send("err in " + err)
+    }
+
+})
+
+
+
+router.post("/get/friendreceived ",async(req,res)=>{
+
+  const user = db.collection("user")
+  
+
+  const token = req.headers.token
+      req.user = null;
+  
+  
+      if (token) {
+          data = jwt.verify(token, process.env.secritkey)
+          req.user = data
+      } else {
+        return res.status(400).json({ messege: "login frist" })
+    }
+
+
+    try{
+
+      liveuser = await user.findOne({"_id":new ObjectId(req.user.id)})
+
+
+      const friends = await user.find({
+        _id: { $in: liveuser.friendRequests.received  }
+      }).toArray();
+    
+      res.status(200).json({"data":friends})
+
+
+    }
+    catch (err) {
+      console.log("=========>" + err);
+      res.status(500).send("err in " + err)
+    }
+
+})
 
 module.exports = router;

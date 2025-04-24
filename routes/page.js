@@ -69,6 +69,7 @@ router.post("/create",async(req , res)=>{
         "originalname": null,
       },
       "followers":0,
+      "category":[]
    })
 
    res.status(200).json({"pageid": data.insertedId })
@@ -576,6 +577,61 @@ router.put("/pull/img/:id",async(req,res)=>{
 
 
 
+router.get("/:id/category",async(req,res)=>{
+
+  const page =db.collection("page")
+
+    try{
+
+      data = await page.findOne({"_id":new ObjectId(req.params.id)},{ projection: { category: 1 } })
+
+      res.status(200).json({"data":data})
+
+    }
+    catch (err) {
+      console.log("=========>" + err);
+      res.status(500).send("err in " + err)
+    }
+})
+
+
+
+router.put("/category",async(req,res)=>{
+  const page =db.collection("page")
+
+  const token = req.headers.token
+  req.user = null;
+
+  if (token) {
+      data = jwt.verify(token, process.env.secritkey)
+      req.user = data
+    } else {
+      return res.status(400).json({ message: "you not login " })
+    }
+
+    try{
+
+     livepage = await page.findOne({"owner":new ObjectId(req.user.id) })
+
+      if(!livepage){
+   
+        return res.status(400).json({messege: "You are not the owner"})
+      }
+
+      await page.updateOne({"_id":new ObjectId(livepage._id)},{$set:{
+
+        "category":req.body.category
+      }})
+
+      res.status(200).json({messege:"category updated"})
+
+    }
+    catch (err) {
+      console.log("=========>" + err);
+      res.status(500).send("err in " + err)
+    }
+  
+})
 
 
 
