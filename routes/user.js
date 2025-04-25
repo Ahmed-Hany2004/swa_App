@@ -36,6 +36,15 @@ router.get("/:id", async (req, res) => {
 
   user = db.collection("user")
 
+  const token = req.headers.token
+      req.user = null;
+
+
+  if (token) {
+    data = jwt.verify(token, process.env.secritkey)
+    req.user = data
+}
+
   try {
 
 
@@ -46,9 +55,36 @@ router.get("/:id", async (req, res) => {
       return res.status(400).json({ "message": "dont find this user" })
     }
 
+    relationship =null
 
+   if(!token){
+   
+   return res.status(200).json({ "data": data ,"relationship":relationship})
 
-    res.status(200).json({ "data": data })
+   }
+
+   else if(data.friends.some(id => id.toString() === (req.user.id.toString()))){
+
+    relationship = "friends"
+
+    return res.status(200).json({ "data": data ,"relationship":relationship})
+   }
+
+   else  if(data.friendRequests.sent.some(id => id.toString() === (req.user.id.toString()))){
+
+    relationship = "received"
+
+    return res.status(200).json({ "data": data ,"relationship":relationship})
+   }
+
+ else if(data.friendRequests.received.some(id => id.toString() === (req.user.id.toString()))){
+
+    relationship = "sent"
+
+    return res.status(200).json({ "data": data ,"relationship":relationship})
+   }
+
+   return res.status(200).json({ "data": data ,"relationship":relationship})
 
   }
   catch (err) {
@@ -635,3 +671,56 @@ router.post("/get/friendreceived ",async(req,res)=>{
 })
 
 module.exports = router;
+
+
+
+
+
+
+
+
+// const token = req.headers.token;
+// req.user = null;
+
+// if (!token) {
+//   return res.status(400).json({ message: "login first" });
+// }
+
+// let userData;
+// try {
+//   const decoded = jwt.verify(token, process.env.secritkey);
+//   req.user = decoded;
+
+//   userData = await user.findOne({ _id: new ObjectId(req.user.id) });
+//   if (!userData) {
+//     return res.status(404).json({ message: "User not found" });
+//   }
+// } catch (err) {
+//   return res.status(401).json({ message: "Invalid token" });
+// }
+
+// // المستخدم المستهدف
+// const otherUserId = new ObjectId(req.params.id);
+// const targetUser = await user.findOne({ _id: otherUserId });
+
+// if (!targetUser) {
+//   return res.status(404).json({ message: "User not found" });
+// }
+
+
+// const otherUserIdStr = otherUserId.toString();
+
+// const isFriend = userData.friends.some(id => id.toString() === otherUserIdStr);
+// const sentRequest = userData.friendRequests.sent.some(id => id.toString() === otherUserIdStr);
+// const receivedRequest = userData.friendRequests.received.some(id => id.toString() === otherUserIdStr);
+
+// const relationship = {
+//   isFriend,
+//   sentRequest,
+//   receivedRequest
+// };
+
+// res.status(200).json({
+//   data: targetUser,
+//   relationship
+// });
