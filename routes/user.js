@@ -520,7 +520,7 @@ router.post("/friend",async(req,res)=>{
 })
 
 
-router.post("/get/friend",async(req,res)=>{
+router.post("/get/friend/:id",async(req,res)=>{
 
   const user = db.collection("user")
   
@@ -538,7 +538,7 @@ router.post("/get/friend",async(req,res)=>{
 
     try{
 
-  liveuser = await user.findOne({"_id":new ObjectId(req.user.id)})
+  liveuser = await user.findOne({"_id":new ObjectId(req.params.id)})
 
 
   const friends = await user.find({
