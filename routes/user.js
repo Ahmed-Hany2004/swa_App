@@ -632,7 +632,7 @@ router.post("/get/friendsend",async(req,res)=>{
 
 
 
-router.post("/get/friendreceived ",async(req,res)=>{
+router.post("/get/friendreceived",async(req,res)=>{
 
   const user = db.collection("user")
   
