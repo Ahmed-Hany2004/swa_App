@@ -69,7 +69,8 @@ router.post("/create",async(req , res)=>{
         "originalname": null,
       },
       "followers":0,
-      "category":[]
+      "category":[],
+      "info":{},
    })
 
    res.status(200).json({"pageid": data.insertedId })
