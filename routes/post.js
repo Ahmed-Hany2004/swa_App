@@ -242,6 +242,27 @@ router.get("/user/:id",async(req,res)=>{
 
 })
 
+router.get("/user/:id/imgs",async(req,res)=>{
+
+  const post = db.collection("post")
+
+  const token = req.headers.token
+  req.user = null;
+
+  try{
+
+    data = await post.find({"user":new ObjectId(req.params.id),img: { $exists: true, $not: { $size: 0 } }}
+    ,{ projection: { img: 1 } }).toArray()
+
+    res.status(200).json({data:data})
+
+  }
+  catch (err) {
+    console.log("=========>" + err);
+    res.status(500).send("err in " + err)
+  }
+})
+
 router.post("/", async (req, res) => {
 
   const post = db.collection("post")

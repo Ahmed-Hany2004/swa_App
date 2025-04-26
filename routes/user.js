@@ -204,8 +204,8 @@ router.put("/:id", async (req, res) => {
         "password": req.body.password,
         "phone": req.body.phone,
         "brithdate": req.body.brithdate,
-        "info": info,
-      "Settings":Settings,
+        "info": req.body.info,
+      "Settings":req.body.Settings,
       }
     }
     )
@@ -577,9 +577,10 @@ router.post("/get/friend/:id",async(req,res)=>{
   liveuser = await user.findOne({"_id":new ObjectId(req.params.id)})
 
 
-  const friends = await user.find({
-    _id: { $in: liveuser.friends }
-  }).toArray();
+  const friends = await user.find(
+    { _id: { $in: liveuser.friends } },
+    { projection: { password: 0 } }
+  ).toArray();
 
   res.status(200).json({"data":friends})
 
@@ -616,9 +617,7 @@ router.post("/get/friendsend",async(req,res)=>{
       liveuser = await user.findOne({"_id":new ObjectId(req.user.id)})
 
 
-      const friends = await user.find({
-        _id: { $in: liveuser.friendRequests.sent }
-      }).toArray();
+      const friends = await user.find({ _id: { $in: liveuser.friendRequests.sent }},{ projection: { password: 0 } }).toArray();
     
       res.status(200).json({"data":friends})
 
@@ -657,7 +656,8 @@ router.post("/get/friendreceived ",async(req,res)=>{
 
       const friends = await user.find({
         _id: { $in: liveuser.friendRequests.received  }
-      }).toArray();
+      },{ projection: { password: 0 } }
+    ).toArray();
     
       res.status(200).json({"data":friends})
 
@@ -669,6 +669,7 @@ router.post("/get/friendreceived ",async(req,res)=>{
     }
 
 })
+
 
 module.exports = router;
 
