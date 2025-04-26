@@ -254,12 +254,18 @@ router.get("/user/:id/imgs",async(req,res)=>{
 
   try{
 
+    z = await post.find({"user":new ObjectId(req.params.id),img: { $exists: true, $not: { $size: 0 } }}).toArray()
+
+    f = z.length;
+
+    last_page = Math.ceil(f / limit);
+
     data = await post.find({"user":new ObjectId(req.params.id),img: { $exists: true, $not: { $size: 0 } }}
     ,{ projection: { img: 1 } }).limit(Number(limit))
     .skip((page - 1) * limit)
     .toArray()
 
-    res.status(200).json({data:data})
+    res.status(200).json({data:data,last_page:last_page})
 
   }
   catch (err) {
