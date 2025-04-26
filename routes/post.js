@@ -249,10 +249,15 @@ router.get("/user/:id/imgs",async(req,res)=>{
   const token = req.headers.token
   req.user = null;
 
+  const page = req.query.page||1;
+  const limit = Number(req.query.limit)||5;
+
   try{
 
     data = await post.find({"user":new ObjectId(req.params.id),img: { $exists: true, $not: { $size: 0 } }}
-    ,{ projection: { img: 1 } }).toArray()
+    ,{ projection: { img: 1 } }).limit(Number(limit))
+    .skip((page - 1) * limit)
+    .toArray()
 
     res.status(200).json({data:data})
 
