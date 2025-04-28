@@ -55,6 +55,7 @@ router.post("/create",async(req , res)=>{
     return res.status(400).json({messege: "You already have a page"})
     }
 
+    info = req.body.info ||{}
  data =  await page.insertOne({
     "pagename":req.body.pagename,
     "owner": new ObjectId(req.user.id),
@@ -70,7 +71,7 @@ router.post("/create",async(req , res)=>{
       },
       "followers":0,
       "category":[],
-      "info":{},
+      "info":info,
       "creationDate": Date.now()
    })
 
