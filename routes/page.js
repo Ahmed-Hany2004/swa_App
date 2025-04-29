@@ -84,6 +84,43 @@ router.post("/create",async(req , res)=>{
 
 })
 
+
+router.put("/data",async(req,res)=>{
+
+  const token = req.headers.token
+  req.user = null;
+
+  if (token) {
+    data = jwt.verify(token, process.env.secritkey)
+    req.user = data
+  } else {
+    return res.status(400).json({ message: "you not login " })
+  }
+
+
+  try{
+
+    newpage = await page.findOne({"owner":new ObjectId(req.user.id)})
+
+    if(newpage){
+    return res.status(400).json({messege: "You already have a page"})
+    }
+
+    await page.updateOne({"_id": new ObjectId(newpage._id)},{$set:{
+      "pagename":req.body.pagename,
+      "info":req.body.info,
+    }})
+
+    res.status(200).json({ message: "page updated" })
+    
+  }
+  catch (err) {
+    console.log("=========>" + err);
+    res.status(500).send("err in " + err)
+  }
+
+})
+
 router.post("/img", upload.single("img"),async(req,res)=>{
 
     const page =db.collection("page")
