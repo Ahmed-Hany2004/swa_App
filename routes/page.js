@@ -12,6 +12,24 @@ const { object } = require("joi");
 
 const router = express.Router()
 
+router.get("/",async(req,res)=>{
+
+  const page = db.collection("page")
+
+  try{
+    search = req.query.search || null
+
+    data = await page.findOne({"pagename":{ $regex: search, $options: "i"}})
+
+    res.status(200).json({"data":data})
+
+  }
+catch (err) {
+    console.log("=========>" + err);
+    res.status(500).send("err in " + err)
+  }
+})
+
 router.get("/:id",async(req,res)=>{
     
   const page = db.collection("page")

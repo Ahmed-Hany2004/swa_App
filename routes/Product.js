@@ -11,17 +11,136 @@ const fs = require("fs");
 const router = express.Router()
 
 
-
-
-router.get("/:id",async(req,res)=>{
+router.get("/all", async (req, res) => {
 
     const Product = db.collection("Product")
 
-    try{
+    try {
 
-      data = await Product.findOne({"_id":new ObjectId(req.params.id)})
+        const pipeline = [];
 
-      res.status(200).json({"data":data})
+
+if (search) {
+  pipeline.push({
+    $match: {
+      $or: [
+        { "name": { $regex: search, $options: "i" } },
+        { "category": { $regex: search, $options: "i" } },
+        { "type": { $regex: search, $options: "i" } },
+        { "details": { $regex: search, $options: "i" } },
+        { "about": { $regex: search, $options: "i" } },
+      ]
+    }
+  });
+}
+
+
+if (type) {
+  pipeline.push({
+    $match: {
+      "type": { $in: type.split(',') }
+    }
+  });
+}
+
+
+if (category) {
+  pipeline.push({
+    $match: {
+      "category": { $in: category.split(',') }
+    }
+  });
+}
+
+if (name) {
+  pipeline.push({
+    $match: {
+      "name": { $in: name.split(',') }
+    }
+  });
+}
+
+
+if (sale) {
+  pipeline.push({
+    $match: {
+      "sale": { $in: sale.split(',') }
+    }
+  });
+}
+
+
+if (stock) {
+  pipeline.push({
+    $match: {
+      "stock": { $in: stock.split(',') }
+    }
+  });
+}
+
+
+if (minPrice && maxPrice) {
+  pipeline.push({
+    $match: {
+      "Price": { $gte: minPrice, $lte: maxPrice }
+    }
+  });
+}
+
+
+const sortByPrice = req.query.sortPrice || null;  
+const sortByName = req.query.sortName || null;   
+
+if (sortByPrice) {
+  pipeline.push({
+    $sort: {
+      "Price": sortByPrice === 'asc' ? 1 : -1  
+    }
+  });
+}
+
+if (sortByName) {
+  pipeline.push({
+    $sort: {
+      "name": sortByName === 'asc' ? 1 : -1  
+    }
+  });
+}
+
+
+if (limit) {
+  pipeline.push({
+    $limit: limit
+  });
+}
+
+if (page >= 0) {
+  pipeline.push({
+    $skip: page * limit
+  });
+}
+
+
+    }
+    catch (err) {
+        console.log("=========>" + err);
+        res.status(500).send("err in " + err)
+    }
+
+})
+
+
+
+
+router.get("/:id", async (req, res) => {
+
+    const Product = db.collection("Product")
+
+    try {
+
+        data = await Product.findOne({ "_id": new ObjectId(req.params.id) })
+
+        res.status(200).json({ "data": data })
 
     }
     catch (err) {
@@ -173,14 +292,14 @@ router.put("/:id/pull/img", async (req, res) => {
 
         await Product.updateOne({ "_id": new ObjectId(req.params.id) }, {
             $pull: {
-              "img": { "newpath.publicid": req.body.publicid } // publicid
-      
+                "img": { "newpath.publicid": req.body.publicid } // publicid
+
             }
-          })
-      
-          cloud_remove(req.body.publicid)
-      
-          res.status(200).json({ message: "done" })
+        })
+
+        cloud_remove(req.body.publicid)
+
+        res.status(200).json({ message: "done" })
 
     }
     catch (err) {
@@ -194,7 +313,7 @@ router.put("/:id/pull/img", async (req, res) => {
 })
 
 
-router.put("/:id/data",async(req,res)=>{
+router.put("/:id/data", async (req, res) => {
 
     const Product = db.collection("Product")
     const page = db.collection("page")
@@ -211,10 +330,10 @@ router.put("/:id/data",async(req,res)=>{
         return res.status(400).json({ messege: "login frist" })
     }
 
-    try{
+    try {
 
         owner = await page.findOne({ "owner": new ObjectId(req.user.id) })
-       ownerproduct = await Product.findOne({"_id":new ObjectId(req.params.id)})
+        ownerproduct = await Product.findOne({ "_id": new ObjectId(req.params.id) })
 
 
         if (owner._id.toString() != ownerproduct.pageid.toString()) {
@@ -222,18 +341,20 @@ router.put("/:id/data",async(req,res)=>{
             return res.status(400).json({ messege: "not owner" })
         }
 
-       await Product.updateOne({"_id":new ObjectId(req.params.id)},{$set:{
-        "type": req.body.type,
-        "category": req.body.category,
-        "name": req.body.name,
-        "Price": req.body.Price,
-        "sale": req.body.sale,
-        "stock": req.body.stock,
-        "details": req.body.details,
-        "about": req.body.about,
-       }})
+        await Product.updateOne({ "_id": new ObjectId(req.params.id) }, {
+            $set: {
+                "type": req.body.type,
+                "category": req.body.category,
+                "name": req.body.name,
+                "Price": req.body.Price,
+                "sale": req.body.sale,
+                "stock": req.body.stock,
+                "details": req.body.details,
+                "about": req.body.about,
+            }
+        })
 
-       res.status(200).json({message: "Product updated"})
+        res.status(200).json({ message: "Product updated" })
 
 
     }
@@ -245,7 +366,7 @@ router.put("/:id/data",async(req,res)=>{
 
 })
 
-router.delete("/:id",async(req,res)=>{
+router.delete("/:id", async (req, res) => {
 
     const Product = db.collection("Product")
     const page = db.collection("page")
@@ -262,20 +383,20 @@ router.delete("/:id",async(req,res)=>{
         return res.status(400).json({ messege: "login frist" })
     }
 
-    try{
+    try {
 
         owner = await page.findOne({ "owner": new ObjectId(req.user.id) })
-        ownerproduct = await Product.findOne({"_id":new ObjectId(req.params.id)})
- 
- 
-         if (owner._id.toString() != ownerproduct.pageid.toString()) {
- 
-             return res.status(400).json({ messege: "not owner" })
-         }
+        ownerproduct = await Product.findOne({ "_id": new ObjectId(req.params.id) })
 
-         await Product.deleteOne({"_id":new ObjectId(req.params.id)})
 
-         res.status(200).json({ message: "product deleted" })
+        if (owner._id.toString() != ownerproduct.pageid.toString()) {
+
+            return res.status(400).json({ messege: "not owner" })
+        }
+
+        await Product.deleteOne({ "_id": new ObjectId(req.params.id) })
+
+        res.status(200).json({ message: "product deleted" })
 
     }
     catch (err) {
