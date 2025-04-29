@@ -134,6 +134,11 @@ router.post("/:id", async (req, res) => {
       "user": new ObjectId(req.user.id),
       "seeMore":false,
       "replay": replay,
+      "img": {
+        "url": null,
+        "publicid": null,
+        "originalname": null,
+      },
       
     }) 
 
@@ -162,7 +167,123 @@ router.post("/:id", async (req, res) => {
 
 })
 
+router.post("/:id/img",upload.single("img"),async(req,res)=>{
 
+  const comment = db.collection("comment")
+
+  const token = req.headers.token
+  req.user = null;
+
+  if (token) {
+    data = jwt.verify(token, process.env.secritkey)
+    req.user = data
+  } else {
+    return res.status(400).json({ message: "you not login " })
+  }
+
+  try{
+
+    newComment = await comment.findOne({ "_id": new ObjectId(req.params.id) })
+
+    if (!newComment) {
+
+      return res.status(400).json({ messege: "dont find this comment" })
+    }
+
+    if (newComment.user != req.user.id) {
+
+      return res.status(400).json({ message: "dont allowed" })
+    }
+
+    if (!req.file) {
+      return res.status(403).json({ message: "you not send img" })
+
+    }
+     const pathimge = path.join(__dirname, "../upload/" + req.file.originalname)
+    
+        if (newComment.img.originalname == req.file.originalname) {
+          fs.unlinkSync(pathimge)
+    
+          return res.status(200).json({ message: "upload img Succeed 1" })
+        }
+
+        result = await cloud_uplod(pathimge)
+
+        if (newComment.img.publicid !== null) {
+          cloud_remove(newComment.img.publicid)
+        }
+
+         await comment.updateOne({ "_id": new ObjectId(req.params.id) }, {
+              $set: {
+                "img": {
+                  "url": result.secure_url,
+                  "publicid": result.public_id,
+                  "originalname": req.file.originalname,
+                }
+              }
+            })
+            fs.unlinkSync(pathimge)
+            res.status(200).json({ message: "upload img Succeed", })
+  }
+  catch (err) {
+    console.log("=========>" + err);
+    res.status(500).send("err in " + err)
+  }
+
+})
+
+
+router.delete("/:id/img", async (req, res) => {
+
+  const comment = db.collection("comment")
+
+  const token = req.headers.token
+  req.user = null;
+
+  if (token) {
+    data = jwt.verify(token, process.env.secritkey)
+    req.user = data
+  } else {
+    return res.status(400).json({ message: "you not login " })
+  }
+
+  try {
+
+    newComment = await comment.findOne({ "_id": new ObjectId(req.params.id) })
+
+    if (!newComment) {
+
+      return res.status(400).json({ messege: "dont find this comment" })
+    }
+
+    if (newComment.user != req.user.id) {
+
+      return res.status(400).json({ message: "dont allowed" })
+    }
+
+
+    cloud_remove(newComment.img.publicid)
+
+
+    await comment.updateOne({ "_id": new ObjectId(req.params.id) }, {
+      $set: {
+        "img": {
+          "url": null,
+          "publicid": null,
+          "originalname": null,
+        }
+      }
+    })
+
+    res.status(200).json({ "message": "img delete" })
+
+  }
+  catch (err) {
+    console.log("=========>" + err);
+    res.status(500).send("err in " + err)
+  }
+
+})
 
 router.put("/:id", async (req, res) => {
 

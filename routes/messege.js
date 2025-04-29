@@ -1,5 +1,3 @@
-import { date } from "joi";
-
 const express = require("express");
 const { db } = require("../connection");
 const { ObjectId } = require("mongodb");
@@ -63,6 +61,7 @@ const token = req.headers.token
         "publicid": null,
         "originalname": null,
       },
+      "chatid":new ObjectId(req.params.id),
       "replay":replay,
       "type":"chat",
       "conntent":"paragraph"
