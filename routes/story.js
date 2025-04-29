@@ -276,7 +276,7 @@ router.put("/:id", async (req, res) => {
 
         await story.updateOne({ "_id": new ObjectId(req.params.id) }, {
             $set: {
-                "info": info
+                "info": req.body.info
             }
         })
 
