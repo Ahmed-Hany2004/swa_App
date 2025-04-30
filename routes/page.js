@@ -105,6 +105,8 @@ router.post("/create",async(req , res)=>{
 
 router.put("/data",async(req,res)=>{
 
+  const page = db.collection("page")
+
   const token = req.headers.token
   req.user = null;
 
@@ -120,9 +122,7 @@ router.put("/data",async(req,res)=>{
 
     newpage = await page.findOne({"owner":new ObjectId(req.user.id)})
 
-    if(newpage){
-    return res.status(400).json({messege: "You already have a page"})
-    }
+    
 
     await page.updateOne({"_id": new ObjectId(newpage._id)},{$set:{
       "pagename":req.body.pagename,
