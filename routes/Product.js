@@ -105,12 +105,19 @@ router.get("/page/:id",async(req,res)=>{
     max = Number(req.query.max)|| 10000000000000000000000
     limit = Number(req.query.limit)|| 10
      page = (Number(req.query.page) || 1) - 1;  
+     name = req.query.name ||null
+     availability = req.query.availability 
 
      try{
 
         let matchStage = {
             "pageid": new ObjectId(req.params.id)
         };
+
+        if(name){
+
+            matchStage.name = { $regex: name, $options: 'i' };
+        }
 
         if (category) {
 
@@ -124,6 +131,13 @@ router.get("/page/:id",async(req,res)=>{
             matchStage.Price = { $gte: min };
           } else if (max) {
             matchStage.Price = { $lte: max };
+          }
+
+          if(availability == "stock"){
+            matchStage.stock = {$gte: 0}
+          }
+          else if(availability == "notstock"){
+            matchStage.stock = {$eq: 0}
           }
 
           pipeline = [];
