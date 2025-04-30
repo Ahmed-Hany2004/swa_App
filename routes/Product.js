@@ -134,7 +134,7 @@ router.get("/page/:id",async(req,res)=>{
           }
 
           if(availability == "stock"){
-            matchStage.stock = {$gte: 0}
+            matchStage.stock = {$gte: 1}
           }
           else if(availability == "notstock"){
             matchStage.stock = {$eq: 0}
