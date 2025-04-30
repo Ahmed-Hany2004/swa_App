@@ -52,6 +52,7 @@ router.get("/:id",async(req,res)=>{
 router.post("/create",async(req , res)=>{
 
  const page = db.collection("page")
+ const user =db.collection("user")
 
 
  const token = req.headers.token
@@ -92,6 +93,10 @@ router.post("/create",async(req , res)=>{
       "info":info,
       "creationDate": Date.now()
    })
+
+  await user.updateOne({"_id":new ObjectId(req.user.id)},{$set:{
+    "pageid":data.insertedId
+  }})
 
    res.status(200).json({"pageid": data.insertedId })
    }
