@@ -358,6 +358,7 @@ router.delete("/cover",async(req,res)=>{
 router.get("/page/:id",async(req,res)=>{
 
   const post = db.collection("post")
+  const react = db.collection("react")
 
   const page = req.query.page ||1;
     const limit = Number(req.query.limit)||5;
