@@ -20,9 +20,14 @@ router.get("/all", async (req, res) => {
     max = Number(req.query.max)|| 10000000000000000000000
     limit = Number(req.query.limit)|| 10
      page = (Number(req.query.page) || 1) - 1;  
+     name = req.query.name ||null
     try {
         
         let matchStage = {};
+
+        if(name){
+            matchStage.name = { $regex: name, $options: 'i' }; 
+        }
 
         if (departement) {
           matchStage.departement = { $regex: departement, $options: 'i' };
