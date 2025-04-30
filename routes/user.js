@@ -201,7 +201,6 @@ router.put("/:id", async (req, res) => {
       $set: {
         "firstname": req.body.firstname,
         "lastname": req.body.lastname,
-        "password": req.body.password,
         "phone": req.body.phone,
         "brithdate": req.body.brithdate,
         "info": req.body.info,
