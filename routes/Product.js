@@ -15,9 +15,28 @@ router.get("/all", async (req, res) => {
 
     const Product = db.collection("Product")
 
+    const type = req.query.type||null
+    min = Number(req.query.min)|| 0
+    max = Number(req.query.max)|| 10000000000000000000000
+    limit = Number(req.query.limit)|| 10
+     page = (Number(req.query.page) || 1) - 1;  
     try {
+        
+        let matchStage = {};
 
+        if (type) {
+          matchStage.departement = { $regex: departement, $options: 'i' };
+        }
+        
+        const pipeline = [];
+        
+        if (type) {
+          pipeline.push({ $match: matchStage });
+        }
+
+     data =   await Product.aggregate(pipeline).toArray()
        
+     res.status(200).json({"data":data})
 
     }
     catch (err) {
@@ -75,7 +94,7 @@ router.post("/create/page/:id", async (req, res) => {
 
 
         newproduct = await Product.insertOne({
-            "type": req.body.type,
+            "departement": req.body.departement,
             "category": req.body.category,
             "name": req.body.name,
             "Price": req.body.Price,
