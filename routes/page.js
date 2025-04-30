@@ -430,6 +430,63 @@ router.get("/page/:id",async(req,res)=>{
 
 })
 
+router.get("/onepost/:id",async(req,res)=>{
+
+  const post = db.collection("post")
+  const react = db.collection("react")
+
+  const token = req.headers.token
+  req.user = null;
+
+
+  if (token) {
+    data = jwt.verify(token, process.env.secritkey)
+    req.user = data
+  }
+
+  try{
+
+    data = x = await post.aggregate([
+      { $match: {"_id":new ObjectId(req.params.id)} },
+      {
+        $lookup:
+        {
+          from: "page",
+          localField: "pageId",
+          foreignField: "_id",
+          as: "page"
+        },
+      },
+      { $project: { user: 0, "author.password": 0, "author.cover": 0 } },
+  
+  
+    ]).toArray()
+  
+    if(token){
+  
+      like = await react.findOne({"postid":new ObjectId(data._id),"userid":new ObjectId(req.user.id)})
+  
+      if(like){
+        data["userreact"] =like.react
+      }else{
+    
+        data["userreact"] =null
+    
+      }
+  
+    }
+  
+    res.status(200).json({ "data": data, })
+
+  }
+  catch (err) {
+    console.log("=========>" + err);
+    res.status(500).send("err in " + err)
+  }
+
+
+})
+
 router.post("/create/post",async(req,res)=>{
 
   const page =db.collection("page")

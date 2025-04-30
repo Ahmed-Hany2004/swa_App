@@ -15,7 +15,7 @@ router.get("/all", async (req, res) => {
 
     const Product = db.collection("Product")
 
-    const type = req.query.type||null
+    const departement = req.query.departement||null
     min = Number(req.query.min)|| 0
     max = Number(req.query.max)|| 10000000000000000000000
     limit = Number(req.query.limit)|| 10
@@ -24,19 +24,67 @@ router.get("/all", async (req, res) => {
         
         let matchStage = {};
 
-        if (type) {
+        if (departement) {
           matchStage.departement = { $regex: departement, $options: 'i' };
         }
+    
+        if (min && max) {
+            matchStage.Price = { $gte: min, $lte: max };
+          } else if (min) {
+            matchStage.Price = { $gte: min };
+          } else if (max) {
+            matchStage.Price = { $lte: max };
+          }
+         pipeline = [];
         
-        const pipeline = [];
+    
         
-        if (type) {
-          pipeline.push({ $match: matchStage });
-        }
+        
+           pipeline = [
+          
+            { $match: matchStage },
+        
+            {
+                $lookup: {
+                  from: 'page',  
+                  localField: 'pageid',
+                  foreignField: '_id',  
+                  as: 'pageDetails'  
+                }
+              },
+            {
+              $facet: {
+               
+                products: [
+                  { $skip: page * limit },
+                  { $limit: limit }
+                ],
+               
+                maxPrice: [
+                  { $group: { _id: null, maxPrice: { $max: "$Price" } } }
+                ],
+                totalCount: [
+                    { $count: "count" }
+                  ]
+              }
+            }
+          ];
+        
+        
+          const result = await Product.aggregate(pipeline).toArray()
+        
+          
+          const data = result[0].products;
+          const highestPrice = result[0].maxPrice.length > 0 ? result[0].maxPrice[0].maxPrice : 0;
+          const totalCount = result[0].totalCount.length > 0 ? result[0].totalCount[0].count : 0;
+        
+          const lastPage = Math.ceil(totalCount / limit);
 
-     data =   await Product.aggregate(pipeline).toArray()
-       
-     res.status(200).json({"data":data})
+          res.status(200).json({
+            data: data,         
+            highestPrice: highestPrice ,
+            lastPage: lastPage  
+          });
 
     }
     catch (err) {
@@ -47,6 +95,95 @@ router.get("/all", async (req, res) => {
 })
 
 
+router.get("/page/:id",async(req,res)=>{
+
+    const Product = db.collection("Product")
+
+     category = req.query.category||null
+    min = Number(req.query.min)|| 0
+    max = Number(req.query.max)|| 10000000000000000000000
+    limit = Number(req.query.limit)|| 10
+     page = (Number(req.query.page) || 1) - 1;  
+
+     try{
+
+        let matchStage = {
+            "pageid": new ObjectId(req.params.id)
+        };
+
+        if (category) {
+
+             category= category.split(',')
+            matchStage.category= { $in: category };
+        }
+
+        if (min && max) {
+            matchStage.Price = { $gte: min, $lte: max };
+          } else if (min) {
+            matchStage.Price = { $gte: min };
+          } else if (max) {
+            matchStage.Price = { $lte: max };
+          }
+
+          pipeline = [];
+        
+    
+        
+        
+          pipeline = [
+         
+           { $match: matchStage },
+       
+           {
+               $lookup: {
+                 from: 'page',  
+                 localField: 'pageid',
+                 foreignField: '_id',  
+                 as: 'pageDetails'  
+               }
+             },
+           {
+             $facet: {
+              
+               products: [
+                 { $skip: page * limit },
+                 { $limit: limit }
+               ],
+              
+               maxPrice: [
+                 { $group: { _id: null, maxPrice: { $max: "$Price" } } }
+               ],
+               totalCount: [
+                   { $count: "count" }
+                 ]
+             }
+           }
+         ];
+       
+       
+         const result = await Product.aggregate(pipeline).toArray()
+       
+         
+         const data = result[0].products;
+         const highestPrice = result[0].maxPrice.length > 0 ? result[0].maxPrice[0].maxPrice : 0;
+         const totalCount = result[0].totalCount.length > 0 ? result[0].totalCount[0].count : 0;
+       
+         const lastPage = Math.ceil(totalCount / limit);
+
+         res.status(200).json({
+           data: data,         
+           highestPrice: highestPrice ,
+           lastPage: lastPage  
+         });
+
+
+     }
+     catch (err) {
+        console.log("=========>" + err);
+        res.status(500).send("err in " + err)
+    }
+
+})
 
 
 router.get("/:id", async (req, res) => {
