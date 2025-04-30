@@ -83,7 +83,8 @@ router.get("/all", async (req, res) => {
           res.status(200).json({
             data: data,         
             highestPrice: highestPrice ,
-            lastPage: lastPage  
+            lastPage: lastPage  ,
+            totalCount:totalCount
           });
 
     }
@@ -173,7 +174,8 @@ router.get("/page/:id",async(req,res)=>{
          res.status(200).json({
            data: data,         
            highestPrice: highestPrice ,
-           lastPage: lastPage  
+           lastPage: lastPage  ,
+           totalCount:totalCount
          });
 
 
