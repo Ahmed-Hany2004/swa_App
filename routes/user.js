@@ -671,6 +671,75 @@ router.post("/get/friendreceived",async(req,res)=>{
 })
 
 
+router.put("/remove/send",async(req,res)=>{
+
+  const user = db.collection("user")
+
+
+  const token = req.headers.token
+      req.user = null;
+  
+  
+      if (token) {
+          data = jwt.verify(token, process.env.secritkey)
+          req.user = data
+      } else {
+        return res.status(400).json({ messege: "login frist" })
+    }
+
+    try{
+
+  await user.updateOne({"_id": new ObjectId(req.user.id)},{$pull:{
+    "friendRequests.sent":new ObjectId(req.body.userid)
+  }})
+
+await user.updateOne({"_id":new ObjectId(req.body.userid)},{$pull:{
+
+  "friendRequests.received":new ObjectId(req.user.id)
+}})
+
+res.status(200).json({"message":"req deleted"})
+    }
+    catch (err) {
+      console.log("=========>" + err);
+      res.status(500).send("err in " + err)
+    }
+
+})
+
+
+router.put("/remove/friend",async(req,res)=>{
+
+  const user = db.collection("user")
+
+  const token = req.headers.token
+      req.user = null;
+  
+  
+      if (token) {
+          data = jwt.verify(token, process.env.secritkey)
+          req.user = data
+      } else {
+        return res.status(400).json({ messege: "login frist" })
+    }
+
+    try{
+
+      await user.updateOne({"_id":new ObjectId(req.user.id)},{$pull:{"friends":new ObjectId(req.body.userid)}})
+
+      await user.updateOne({"_id":new ObjectId(req.body.userid)},{$pull:{"friends":new ObjectId((req.user.id))}})
+
+      res.status(200).json({"message":"friend deleted"})
+    }
+    catch (err) {
+      console.log("=========>" + err);
+      res.status(500).send("err in " + err)
+    }
+
+})
+
+
+
 module.exports = router;
 
 

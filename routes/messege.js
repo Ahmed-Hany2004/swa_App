@@ -32,11 +32,10 @@ const token = req.headers.token
     } else {
         return res.status(400).json({ messege: "login frist" })
     }
-
+    
     try{
 
         replay = req.body.replay
-
 
         if (req.body.replay != null && req.body.replay != "null") {
 
