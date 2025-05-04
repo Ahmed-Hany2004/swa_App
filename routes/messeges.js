@@ -40,11 +40,7 @@ const token = req.headers.token
         if (req.body.replay != null && req.body.replay != "null") {
 
             replay = new ObjectId(req.body.replay)
-            await comment.updateOne({ "_id": new ObjectId(req.body.replay) }, {
-              $set: {
-                "seeMore": true
-              }
-            })
+           
           } else {
             replay = null
           }
@@ -63,10 +59,11 @@ const token = req.headers.token
       "chatid":new ObjectId(req.params.id),
       "replay":replay,
       "type":"chat",
-      "conntent":"paragraph"
+      "conntent":"paragraph",
+      "userseen":[new ObjectId(req.user.id)]
         })
 
-   res.status(200).json({"messegeid":data.in})
+   res.status(200).json({"messegeid":data.insertedId})
 
     }
     catch (err) {

@@ -28,6 +28,7 @@ const storypath = require("./routes/story")
 const pagepath = require("./routes/page")
 const chatpath = require("./routes/chat")
 const Productpath  = require("./routes/Product")
+const messegepath = require("./routes/messeges")
 
 app.use("/user", userpath)
 app.use("/post", postpath)
@@ -36,5 +37,5 @@ app.use("/story", storypath)
 app.use("/page", pagepath)
 app.use("/caht",chatpath)
 app.use("/product",Productpath)
-
+app.use("/messege",messegepath)
 main(app);

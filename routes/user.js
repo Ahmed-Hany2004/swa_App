@@ -95,22 +95,19 @@ router.get("/:id", async (req, res) => {
 
 
 //Create new user
-router.post("/Create", async (req, res) => {
 
+
+
+router.post("/Create", async (req, res) => {
   user = db.collection("user")
   try {
-
     chuk_user = await user.findOne({ "email": req.body.email })
-
     if (chuk_user) {
-
       return res.status(400).json({ "message": "This email is already used" })
     }
-
     info = req.body.info || null
     Settings = req.body.Settings || null
     data = await user.insertOne({
-
       "firstname": req.body.firstname,
       "lastname": req.body.lastname,
       "email": req.body.email,
@@ -136,22 +133,17 @@ router.post("/Create", async (req, res) => {
     "received": []            
   },
   "pageid":null
-
     })
-
     const token = jwt.sign({ id: data.insertedId }, process.env.secritkey);
-
     res.status(200).json({
       "userId": data.insertedId,
       "token": token
     })
-
   }
   catch (err) {
     console.log("=========>" + err);
     res.status(500).send("err in " + err)
   }
-
 })
 
 
