@@ -84,19 +84,19 @@ router.get("/", async (req, res) => {
     }
 
 
-    // for(i= 0 ; i <data.length ; i++ ){
+    for(i= 0 ; i <data.length ; i++ ){
  
-    //  like = await react.findOne({"postid":new ObjectId(data[i]._id),"userid":new ObjectId(req.user.id)})
+     like = await react.findOne({"postid":new ObjectId(data[i]._id),"userid":new ObjectId(req.user.id)})
 
-    // if(like){
-    //   data[i]["userreact"] =like.react
-    // }else{
+    if(like){
+      data[i]["userreact"] =like.react
+    }else{
 
-    //   data[i]["userreact"] =null
+      data[i]["userreact"] =null
   
-    // }
+    }
 
-    // }
+    }
 
     res.status(200).json({ "data": data, last_page: last_page })
 
