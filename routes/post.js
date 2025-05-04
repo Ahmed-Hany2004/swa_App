@@ -94,7 +94,7 @@ router.get("/", async (req, res) => {
  
      like = await react.findOne({"postid":new ObjectId(data[i]._id),"userid":new ObjectId(req.user.id)})
 
-    if(like.react){
+    if(like){
 
       data[i]["userreact"] =like.react
     }else{
