@@ -80,6 +80,12 @@ router.get("/", async (req, res) => {
     }
 
     if (!token) {
+
+      for(i= 0 ; i <data.length ; i++ ){
+
+        data[i]["userreact"] =null
+      }
+
       res.status(200).json({ "data": data, last_page: last_page })
     }
 
@@ -95,8 +101,8 @@ router.get("/", async (req, res) => {
       data[i]["userreact"] =null
   
     }
-
-    }
+     }
+     
 
     res.status(200).json({ "data": data, last_page: last_page })
 
