@@ -14,6 +14,31 @@ const router = express.Router()
 
 router.get("/chat/:id",async(req,res)=>{
 
+  const messege = db.collection("messege")
+
+  try{
+
+data =await messege.aggregate([
+ {$match: {"chatid":new ObjectId(req.params.id)}},
+ { $sort: { time: -1 } },
+ {
+  $lookup:
+  {
+    from: "user",
+    localField: "user",
+    foreignField: "_id",
+    as: "author"
+  },
+},
+{ $project: { user: 0, "author.password": 0, "author.cover": 0 } },
+]).toArray()
+
+res.status(200).json({"data":data})
+  }
+ catch (err) {
+        console.log("=========>" + err);
+        res.status(500).send("err in " + err)
+    }
 
 })
 

@@ -755,6 +755,25 @@ router.put("/category",async(req,res)=>{
 })
 
 
+router.delete("/:id",async(req,res)=>{
+
+  const page =db.collection("page")
+  const Product = db.collection("Product")
+
+  try{
+
+   await page.deleteOne({"_id":new ObjectId(req.params.id)})
+  await Product.deleteMany({"pageid":new ObjectId(req.params.id)})
+
+  res.status(200).json({message: "page deleted"})
+  }
+  catch (err) {
+    console.log("=========>" + err);
+    res.status(500).send("err in " + err)
+  }
+
+})
+
 
 
 module.exports = router;

@@ -17,8 +17,10 @@ router.get("/", async (req, res) => {
   user = db.collection("user")
 
   try {
+ const name = req.query.name
 
-    data = await user.find({}).toArray()
+      
+    data = await user.find({"firstname": {$regex: name, $options: 'i'} }).toArray()
 
     res.status(200).json({ data: data })
 

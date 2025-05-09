@@ -554,5 +554,83 @@ router.post("/react/:id", async (req, res) => {
 })
 
 
+router.get("/:id/react",async(req,res)=>{
+
+  const react = db.collection("react")
+
+  try{
+
+    like = req.query.like ||null
+
+    let matchStage = {
+      postid: new ObjectId(req.params.id)
+    };
+  
+  
+    if (like !== null && like !== "") {
+      matchStage.react = like;
+    }
+
+    data = await react.aggregate([
+      
+      {$match: matchStage},
+      {
+        $lookup:
+        {
+          from: "user",
+          localField: "userid",
+          foreignField: "_id",
+          as: "author"
+        },
+      },
+      { $project: { user: 0, "author.password": 0, "author.cover": 0 } },
+    ]).toArray()
+
+    res.status(200).json({"data":data})
+
+  }
+  catch (err) {
+    console.log("=========>" + err);
+    res.status(500).send("err in " + err)
+  }
+
+})
+
+
+router.delete("/:id",async(req,res)=>{
+
+  const post = db.collection("post")
+  const react = db.collection("react")
+  const comment = db.collection("comment")
+
+  const token = req.headers.token
+  req.user = null;
+  islike = req.body.islike
+  React = req.body.react
+
+
+  if (token) {
+    data = jwt.verify(token, process.env.secritkey)
+    req.user = data
+  } else {
+    return res.status(400).json({ message: "you not login " })
+  }
+
+  try{
+
+    await post.deleteOne({"_id":new ObjectId(req.params.id)})
+    await react.deleteMany({"postid":new ObjectId(req.params.id)})
+    await comment.deleteMany({"postid":new ObjectId(req.params.id)})
+
+    res.status(200).json({message: "post deleted"})
+
+  }
+  catch (err) {
+    console.log("=========>" + err);
+    res.status(500).send("err in " + err)
+  }
+
+})
+
 
 module.exports = router;
