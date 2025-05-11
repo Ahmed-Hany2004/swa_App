@@ -17,7 +17,7 @@ router.get("/",async(req,res)=>{
   const page = db.collection("page")
 
   try{
-    search = req.query.search || ""
+    search = req.query.name || ""
 
     data = await page.findOne({"pagename":{ $regex: search, $options: "i"}})
 
