@@ -19,7 +19,7 @@ router.get("/",async(req,res)=>{
   try{
     search = req.query.name || ""
 
-    data = await page.findOne({"pagename":{ $regex: search, $options: "i"}})
+    data = await page.find({"pagename":{ $regex: search, $options: "i"}}).toArray()
 
     res.status(200).json({"data":data})
 
