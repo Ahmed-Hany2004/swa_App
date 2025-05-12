@@ -213,7 +213,18 @@ router.get("/:id", async (req, res) => {
 
     try {
 
-        data = await Product.findOne({ "_id": new ObjectId(req.params.id) })
+        data = await Product.aggregate([
+              { $match: matchStage },
+       
+              {
+                $lookup: {
+                  from: 'page',  
+                  localField: 'pageid',
+                  foreignField: '_id',  
+                  as: 'pageDetails'  
+                }
+              },
+        ])
 
         res.status(200).json({ "data": data })
 
