@@ -224,7 +224,7 @@ router.get("/:id", async (req, res) => {
                   as: 'pageDetails'  
                 }
               },
-        ])
+        ]).toArray()
 
         res.status(200).json({ "data": data })
 
