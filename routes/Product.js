@@ -214,7 +214,7 @@ router.get("/:id", async (req, res) => {
     try {
 
         data = await Product.aggregate([
-              { $match: {"pageid": new ObjectId(req.params.id)} },
+              { $match: {"_id": new ObjectId(req.params.id)} },
        
               {
                 $lookup: {
